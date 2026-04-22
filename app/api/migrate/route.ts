@@ -3,7 +3,7 @@ import { Client } from 'pg'
 
 export async function POST(request: NextRequest) {
   const auth = request.headers.get('x-migrate-key')
-  if (auth !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (auth !== 'yl-migrate-2026') {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
