@@ -7,7 +7,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const client = new Client({ connectionString: process.env.DATABASE_URL })
+  const client = new Client({
+    host: 'aws-0-us-east-1.pooler.supabase.com',
+    port: 5432,
+    database: 'postgres',
+    user: 'postgres.isrujlamyagkmvleoers',
+    password: 'uybqBIqPKLnJiW7n',
+    ssl: { rejectUnauthorized: false },
+  })
   try {
     await client.connect()
     await client.query(`
