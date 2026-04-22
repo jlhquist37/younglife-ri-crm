@@ -98,11 +98,13 @@ export default function ImportPage() {
 
       if (!res.ok || json.error) throw new Error((json.error as string) ?? 'Parse failed')
 
-      setParsedRows(json.rows)
-      setHeaders(json.headers)
+      const rows = json.rows as ParsedRow[]
+      const hdrs = json.headers as string[]
+      setParsedRows(rows)
+      setHeaders(hdrs)
       // Auto-map by matching header names
       const autoMap: Record<string, string> = {}
-      for (const h of json.headers) {
+      for (const h of hdrs) {
         const lower = h.toLowerCase().trim()
         const match = CONTACT_FIELDS.find(
           (f) => f.key !== '__skip__' && (f.key === lower || f.label.toLowerCase().includes(lower))
