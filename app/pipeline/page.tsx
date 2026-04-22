@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/app/lib/supabase/client'
 import ContactCard from '@/app/components/ContactCard'
-import { INDIVIDUAL_STAGES, CHURCH_STAGES } from '@/app/lib/constants'
+import { INDIVIDUAL_STAGES, CHURCH_STAGES, INDIVIDUAL_STAGE_DEFINITIONS, CHURCH_STAGE_DEFINITIONS } from '@/app/lib/constants'
 import type { ContactWithOwner } from '@/app/lib/types'
 
 type Tab = 'individual' | 'church'
@@ -24,6 +24,7 @@ export default function PipelinePage() {
   const searchRef = useRef<HTMLInputElement>(null)
 
   const stages = tab === 'individual' ? INDIVIDUAL_STAGES : CHURCH_STAGES
+  const stageDefs = tab === 'individual' ? INDIVIDUAL_STAGE_DEFINITIONS : CHURCH_STAGE_DEFINITIONS
 
   async function fetchContacts() {
     setLoading(true)
@@ -173,8 +174,13 @@ export default function PipelinePage() {
                   onDrop={(e) => handleDrop(e, stage)}
                 >
                   <div className="pipeline-col-header">
-                    <span className="text-sm font-semibold text-gray-700">{stage}</span>
-                    <div className="flex items-center gap-1.5">
+                    <div>
+                      <span className="text-sm font-semibold text-gray-700">{stage}</span>
+                      {stageDefs[stage] && (
+                        <p className="text-xs text-gray-400 mt-0.5 leading-tight">{stageDefs[stage]}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
                       <span className="text-xs bg-white border border-gray-200 rounded-full px-2 py-0.5 text-gray-500">
                         {stageContacts.length}
                       </span>

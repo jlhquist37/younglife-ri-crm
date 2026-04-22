@@ -87,11 +87,11 @@
 
   /* Pipeline column */
   .pipeline-col {
-    @apply flex-shrink-0 w-64 bg-gray-50 rounded-xl p-3 flex flex-col gap-2;
+    @apply flex-shrink-0 w-72 bg-gray-50 rounded-xl p-3 flex flex-col gap-2;
   }
 
   .pipeline-col-header {
-    @apply flex items-center justify-between mb-1 px-1;
+    @apply flex items-start justify-between mb-2 px-1;
   }
 }
 
