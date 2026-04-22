@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase/client'
 import TagPicker from '@/app/components/TagPicker'
+import StaffPicker from '@/app/components/StaffPicker'
 import {
   CONTACT_TYPES,
   INDIVIDUAL_STAGES,
@@ -77,6 +78,7 @@ export default function NewContactPage() {
         stage: form.stage || null,
         notes: form.notes || null,
         tags: form.tags,
+        relationship_owner: form.relationship_owner || null,
       }
 
       const { data: contact, error: contactErr } = await supabase
@@ -243,6 +245,15 @@ export default function NewContactPage() {
             </div>
           </div>
         )}
+
+        {/* Relationship Owner */}
+        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+          <h2 className="font-semibold text-gray-900">Relationship Owner</h2>
+          <StaffPicker
+            value={form.relationship_owner}
+            onChange={(id) => setForm((prev) => ({ ...prev, relationship_owner: id }))}
+          />
+        </div>
 
         {/* Tags */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">

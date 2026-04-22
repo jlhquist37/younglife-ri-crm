@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase/client'
 import StageBadge from '@/app/components/StageBadge'
 import TagPicker from '@/app/components/TagPicker'
+import StaffPicker from '@/app/components/StaffPicker'
 import TouchpointForm from '@/app/components/TouchpointForm'
 import {
   INDIVIDUAL_STAGES,
@@ -13,14 +14,13 @@ import {
   TOUCHPOINT_LABELS,
   TYPE_LABELS,
 } from '@/app/lib/constants'
-import type { Contact, ChurchDetails, Touchpoint, User } from '@/app/lib/types'
+import type { ChurchDetails, User } from '@/app/lib/types'
 
 interface Props {
   contact: any
   churchDetails: ChurchDetails | null
   touchpoints: any[]
   currentUser: Pick<User, 'id' | 'name' | 'role'>
-  allUsers: Pick<User, 'id' | 'name'>[]
 }
 
 export default function ContactDetailClient({
@@ -28,7 +28,6 @@ export default function ContactDetailClient({
   churchDetails: initialChurch,
   touchpoints: initialTouchpoints,
   currentUser,
-  allUsers,
 }: Props) {
   const router = useRouter()
   const [contact, setContact] = useState(initialContact)
@@ -79,7 +78,7 @@ export default function ContactDetailClient({
           relationship_owner: editForm.relationship_owner || null,
         })
         .eq('id', contact.id)
-        .select('*, owner:users!relationship_owner(id, name)')
+        .select('*, owner:staff_members!relationship_owner(id, name)')
         .single()
       if (err) throw err
       setContact(data)
@@ -275,16 +274,10 @@ export default function ContactDetailClient({
             </div>
             <div>
               <label className="form-label">Relationship Owner</label>
-              <select
+              <StaffPicker
                 value={editForm.relationship_owner}
-                onChange={(e) => setEditForm((p) => ({ ...p, relationship_owner: e.target.value }))}
-                className="form-select"
-              >
-                <option value="">Unassigned</option>
-                {allUsers.map((u) => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
-                ))}
-              </select>
+                onChange={(id) => setEditForm((p) => ({ ...p, relationship_owner: id }))}
+              />
             </div>
             <div>
               <label className="form-label">Notes</label>

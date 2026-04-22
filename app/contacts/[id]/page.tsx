@@ -18,7 +18,7 @@ export default async function ContactDetailPage({ params }: { params: { id: stri
 
   const { data: contact } = await supabase
     .from('contacts')
-    .select('*, owner:users!relationship_owner(id, name)')
+    .select('*, owner:staff_members!relationship_owner(id, name)')
     .eq('id', params.id)
     .single()
 
@@ -36,18 +36,12 @@ export default async function ContactDetailPage({ params }: { params: { id: stri
     .eq('contact_id', params.id)
     .order('date', { ascending: false })
 
-  const { data: allUsers } = await supabase
-    .from('users')
-    .select('id, name')
-    .order('name')
-
   return (
     <ContactDetailClient
       contact={contact}
       churchDetails={churchDetails ?? null}
       touchpoints={touchpoints ?? []}
       currentUser={currentUser!}
-      allUsers={allUsers ?? []}
     />
   )
 }
