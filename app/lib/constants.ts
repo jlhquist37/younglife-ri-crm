@@ -1,4 +1,4 @@
-export const INDIVIDUAL_STAGES = ['Prospect', 'Cultivating', 'Engaged', 'Committed', 'Lapsed']
+export const INDIVIDUAL_STAGES = ['Prospect', 'Cultivating', 'Engaged', 'Committed', 'Donor', 'Lapsed']
 export const CHURCH_STAGES = ['Aware', 'Exploring', 'Active Partner', 'Champion']
 export const CONTACT_TYPES = ['individual', 'church', 'business', 'community_org']
 export const TOUCHPOINT_TYPES = ['call', 'email', 'coffee_meal', 'church_visit', 'event', 'introduction', 'thank_you', 'other']
@@ -21,6 +21,7 @@ export const STAGE_COLORS: Record<string, string> = {
   Cultivating: 'bg-blue-100 text-blue-700',
   Engaged: 'bg-indigo-100 text-indigo-700',
   Committed: 'bg-green-100 text-green-700',
+  Donor: 'bg-teal-100 text-teal-700',
   Lapsed: 'bg-red-100 text-red-700',
   Aware: 'bg-slate-100 text-slate-700',
   Exploring: 'bg-yellow-100 text-yellow-700',

@@ -23,13 +23,13 @@ export default async function ContactsPage({
 }) {
   const supabase = createClient()
 
-  // Fetch all users for owner filter
-  const { data: users } = await supabase.from('users').select('id, name').order('name')
+  // Fetch all staff for owner filter
+  const { data: users } = await supabase.from('staff_members').select('id, name').order('name')
 
   // Build query
   let query = supabase
     .from('contacts')
-    .select('*, owner:users!relationship_owner(id, name)')
+    .select('*, owner:staff_members!relationship_owner(id, name)')
     .order('updated_at', { ascending: false })
 
   if (searchParams.q) {
