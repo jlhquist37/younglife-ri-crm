@@ -43,7 +43,7 @@ export default function LogPage() {
         .select('id, name, organization, type, stage')
         .or(`name.ilike.%${query}%,organization.ilike.%${query}%`)
         .limit(10)
-      setResults(data ?? [])
+      setResults((data ?? []) as Contact[])
     }, 200)
     return () => clearTimeout(timer)
   }, [query])

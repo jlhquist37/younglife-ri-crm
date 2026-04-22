@@ -121,7 +121,7 @@ export default function ImportPage() {
           contact[field] = val
         }
       }
-      return contact as MappedContact
+      return contact as unknown as MappedContact
     }).filter((c) => c.name)
   }
 

@@ -77,7 +77,7 @@ export default async function DashboardPage() {
 
   const userMonthCounts: Record<string, { name: string; count: number }> = {}
   for (const tp of (monthTouchpoints ?? [])) {
-    const u = tp.user as { id: string; name: string } | null
+    const u = tp.user as unknown as { id: string; name: string } | null
     if (u) {
       if (!userMonthCounts[u.id]) userMonthCounts[u.id] = { name: u.name, count: 0 }
       userMonthCounts[u.id].count++
