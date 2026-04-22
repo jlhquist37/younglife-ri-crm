@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase/client'
 import StageBadge from '@/app/components/StageBadge'
@@ -21,6 +22,8 @@ interface Props {
   churchDetails: ChurchDetails | null
   touchpoints: any[]
   currentUser: Pick<User, 'id' | 'name' | 'role'>
+  members?: any[]
+  churchAffiliation?: { id: string; name: string } | null
 }
 
 export default function ContactDetailClient({
@@ -28,6 +31,8 @@ export default function ContactDetailClient({
   churchDetails: initialChurch,
   touchpoints: initialTouchpoints,
   currentUser,
+  members: initialMembers = [],
+  churchAffiliation: initialChurchAffiliation = null,
 }: Props) {
   const router = useRouter()
   const [contact, setContact] = useState(initialContact)
@@ -39,6 +44,21 @@ export default function ContactDetailClient({
   const [error, setError] = useState<string | null>(null)
   const [showStageMenu, setShowStageMenu] = useState(false)
 
+  // Church affiliation (for individual contacts)
+  const [currentChurchAffiliation, setCurrentChurchAffiliation] = useState(initialChurchAffiliation)
+  const [churchSearchQuery, setChurchSearchQuery] = useState('')
+  const [churchSearchResults, setChurchSearchResults] = useState<any[]>([])
+
+  // Members (for church contacts)
+  const [members, setMembers] = useState(initialMembers)
+  const [primaryContactId, setPrimaryContactId] = useState<string | null>(
+    initialChurch?.primary_contact_id ?? null
+  )
+  const [showMemberSearch, setShowMemberSearch] = useState(false)
+  const [memberQuery, setMemberQuery] = useState('')
+  const [memberResults, setMemberResults] = useState<any[]>([])
+  const [memberSearching, setMemberSearching] = useState(false)
+
   const [editForm, setEditForm] = useState({
     phone: contact.phone ?? '',
     email: contact.email ?? '',
@@ -47,6 +67,7 @@ export default function ContactDetailClient({
     notes: contact.notes ?? '',
     tags: contact.tags ?? [],
     relationship_owner: contact.relationship_owner ?? '',
+    church_id: contact.church_id ?? '',
   })
 
   const [churchForm, setChurchForm] = useState({
@@ -61,6 +82,78 @@ export default function ContactDetailClient({
 
   const stages = contact.type === 'church' ? CHURCH_STAGES : INDIVIDUAL_STAGES
 
+  // --- Church affiliation search (for individual contacts) ---
+  async function searchChurches(q: string) {
+    setChurchSearchQuery(q)
+    if (!q.trim()) { setChurchSearchResults([]); return }
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('contacts')
+      .select('id, name')
+      .eq('type', 'church')
+      .ilike('name', `%${q}%`)
+      .limit(8)
+    setChurchSearchResults(data ?? [])
+  }
+
+  function selectChurch(c: { id: string; name: string }) {
+    setCurrentChurchAffiliation(c)
+    setEditForm(p => ({ ...p, church_id: c.id }))
+    setChurchSearchQuery('')
+    setChurchSearchResults([])
+  }
+
+  function clearChurch() {
+    setCurrentChurchAffiliation(null)
+    setEditForm(p => ({ ...p, church_id: '' }))
+    setChurchSearchQuery('')
+    setChurchSearchResults([])
+  }
+
+  // --- Member management (for church contacts) ---
+  async function searchMembers(q: string) {
+    setMemberQuery(q)
+    if (!q.trim()) { setMemberResults([]); return }
+    setMemberSearching(true)
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('contacts')
+      .select('id, name, type')
+      .in('type', ['individual', 'business', 'community_org'])
+      .ilike('name', `%${q}%`)
+      .limit(10)
+    setMemberResults(data ?? [])
+    setMemberSearching(false)
+  }
+
+  async function addMember(member: any) {
+    const supabase = createClient()
+    await supabase.from('contacts').update({ church_id: contact.id }).eq('id', member.id)
+    setMembers(prev => [...prev, member].sort((a: any, b: any) => a.name.localeCompare(b.name)))
+    setShowMemberSearch(false)
+    setMemberQuery('')
+    setMemberResults([])
+  }
+
+  async function removeMember(memberId: string) {
+    const supabase = createClient()
+    await supabase.from('contacts').update({ church_id: null }).eq('id', memberId)
+    if (primaryContactId === memberId) setPrimaryContactId(null)
+    setMembers((prev: any[]) => prev.filter((m: any) => m.id !== memberId))
+  }
+
+  async function setPrimaryMember(memberId: string) {
+    const supabase = createClient()
+    if (church) {
+      await supabase.from('church_details').update({ primary_contact_id: memberId }).eq('id', church.id)
+    } else {
+      // create church_details row if it doesn't exist
+      await supabase.from('church_details').upsert({ contact_id: contact.id, primary_contact_id: memberId })
+    }
+    setPrimaryContactId(memberId)
+  }
+
+  // --- Save contact ---
   async function handleSaveContact() {
     setSaving(true)
     setError(null)
@@ -76,6 +169,7 @@ export default function ContactDetailClient({
           notes: editForm.notes || null,
           tags: editForm.tags,
           relationship_owner: editForm.relationship_owner || null,
+          church_id: editForm.church_id || null,
         })
         .eq('id', contact.id)
         .select('*, owner:staff_members!relationship_owner(id, name)')
@@ -83,7 +177,6 @@ export default function ContactDetailClient({
       if (err) throw err
       setContact(data)
 
-      // Save church details if applicable
       if (contact.type === 'church') {
         const churchPayload = {
           denomination: churchForm.denomination || null,
@@ -145,7 +238,6 @@ export default function ContactDetailClient({
 
   function handleTouchpointLogged() {
     setShowLogForm(false)
-    // Refresh page data
     router.refresh()
   }
 
@@ -272,6 +364,52 @@ export default function ContactDetailClient({
                 className="form-input"
               />
             </div>
+
+            {/* Church affiliation — only for non-church contacts */}
+            {contact.type !== 'church' && (
+              <div>
+                <label className="form-label">Church Affiliation</label>
+                {currentChurchAffiliation ? (
+                  <div className="flex items-center gap-2 px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50">
+                    <span className="flex-1 text-sm font-medium text-gray-900">
+                      {currentChurchAffiliation.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={clearChurch}
+                      className="text-gray-400 hover:text-gray-600 text-xs"
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <input
+                      value={churchSearchQuery}
+                      onChange={(e) => searchChurches(e.target.value)}
+                      placeholder="Search for a church..."
+                      className="form-input"
+                      autoComplete="off"
+                    />
+                    {churchSearchResults.length > 0 && (
+                      <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg overflow-hidden">
+                        {churchSearchResults.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            onClick={() => selectChurch(c)}
+                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                          >
+                            {c.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div>
               <label className="form-label">Relationship Owner</label>
               <StaffPicker
@@ -310,6 +448,17 @@ export default function ContactDetailClient({
             {contact.address && (
               <div><dt className="text-xs text-gray-400">Address</dt><dd className="text-sm text-gray-900">{contact.address}</dd></div>
             )}
+            {/* Church affiliation — view mode */}
+            {contact.type !== 'church' && currentChurchAffiliation && (
+              <div>
+                <dt className="text-xs text-gray-400">Church</dt>
+                <dd>
+                  <Link href={`/contacts/${currentChurchAffiliation.id}`} className="text-sm text-primary hover:underline">
+                    {currentChurchAffiliation.name}
+                  </Link>
+                </dd>
+              </div>
+            )}
             {contact.notes && (
               <div><dt className="text-xs text-gray-400">Notes</dt><dd className="text-sm text-gray-900 whitespace-pre-wrap">{contact.notes}</dd></div>
             )}
@@ -323,14 +472,14 @@ export default function ContactDetailClient({
                 </dd>
               </div>
             )}
-            {!contact.phone && !contact.email && !contact.address && !contact.notes && (
+            {!contact.phone && !contact.email && !contact.address && !contact.notes && !currentChurchAffiliation && (
               <p className="text-sm text-gray-400">No contact info yet. Click Edit to add details.</p>
             )}
           </dl>
         )}
       </div>
 
-      {/* Church details */}
+      {/* Church details (edit + view) */}
       {contact.type === 'church' && editing && (
         <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Church Details</h2>
@@ -366,7 +515,7 @@ export default function ContactDetailClient({
                     setChurchForm((p) => ({
                       ...p,
                       partnership_types: p.partnership_types.includes(pt)
-                        ? p.partnership_types.filter((x) => x !== pt)
+                        ? p.partnership_types.filter((x: string) => x !== pt)
                         : [...p.partnership_types, pt],
                     }))
                   }
@@ -451,6 +600,97 @@ export default function ContactDetailClient({
         </div>
       )}
 
+      {/* ── Members section (church contacts only) ── */}
+      {contact.type === 'church' && (
+        <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900">
+              Members
+              <span className="ml-2 text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-normal">{members.length}</span>
+            </h2>
+            <button
+              onClick={() => setShowMemberSearch((v) => !v)}
+              className="text-sm text-primary hover:underline"
+            >
+              {showMemberSearch ? 'Cancel' : '+ Add Member'}
+            </button>
+          </div>
+
+          {/* Add member search */}
+          {showMemberSearch && (
+            <div className="space-y-2 pb-1">
+              <input
+                autoFocus
+                value={memberQuery}
+                onChange={(e) => searchMembers(e.target.value)}
+                placeholder="Search individuals by name..."
+                className="form-input text-sm"
+                autoComplete="off"
+              />
+              {memberSearching && <p className="text-xs text-gray-400 px-1">Searching...</p>}
+              {memberResults.length > 0 && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  {memberResults.map((m) => (
+                    <button
+                      key={m.id}
+                      onClick={() => addMember(m)}
+                      className="w-full text-left px-3 py-2.5 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0 flex items-center justify-between"
+                    >
+                      <span>{m.name}</span>
+                      <span className="text-xs text-gray-400 capitalize">{TYPE_LABELS[m.type] ?? m.type}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {memberQuery && !memberSearching && memberResults.length === 0 && (
+                <p className="text-xs text-gray-400 px-1">No contacts found for &ldquo;{memberQuery}&rdquo;</p>
+              )}
+            </div>
+          )}
+
+          {/* Member list */}
+          {members.length === 0 ? (
+            <p className="text-sm text-gray-400">No members linked yet. Use &ldquo;Add Member&rdquo; to connect individuals to this church.</p>
+          ) : (
+            <div className="space-y-2">
+              {members.map((m: any) => (
+                <div key={m.id} className="flex items-center justify-between px-3 py-2.5 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Link
+                      href={`/contacts/${m.id}`}
+                      className="font-medium text-sm text-gray-900 hover:text-primary truncate"
+                    >
+                      {m.name}
+                    </Link>
+                    {m.id === primaryContactId && (
+                      <span className="flex-shrink-0 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                        Primary
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 ml-3 flex-shrink-0">
+                    {m.id !== primaryContactId && (
+                      <button
+                        onClick={() => setPrimaryMember(m.id)}
+                        className="text-xs text-gray-400 hover:text-primary transition-colors"
+                      >
+                        Set primary
+                      </button>
+                    )}
+                    <button
+                      onClick={() => removeMember(m.id)}
+                      className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Log touchpoint */}
       <div className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between mb-4">
@@ -464,10 +704,7 @@ export default function ContactDetailClient({
             onCancel={() => setShowLogForm(false)}
           />
         ) : (
-          <button
-            onClick={() => setShowLogForm(true)}
-            className="btn-primary w-full text-center"
-          >
+          <button onClick={() => setShowLogForm(true)} className="btn-primary w-full text-center">
             + Log Touchpoint
           </button>
         )}

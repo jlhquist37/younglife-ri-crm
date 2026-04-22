@@ -29,7 +29,26 @@ export default function NewContactPage() {
     notes: '',
     tags: [] as string[],
     relationship_owner: '',
+    church_id: '',
   })
+
+  // Church affiliation search state
+  const [selectedChurch, setSelectedChurch] = useState<{ id: string; name: string } | null>(null)
+  const [churchQuery, setChurchQuery] = useState('')
+  const [churchResults, setChurchResults] = useState<{ id: string; name: string }[]>([])
+
+  async function searchChurches(q: string) {
+    setChurchQuery(q)
+    if (!q.trim()) { setChurchResults([]); return }
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('contacts')
+      .select('id, name')
+      .eq('type', 'church')
+      .ilike('name', `%${q}%`)
+      .limit(8)
+    setChurchResults(data ?? [])
+  }
 
   const [church, setChurch] = useState({
     denomination: '',
@@ -79,6 +98,7 @@ export default function NewContactPage() {
         notes: form.notes || null,
         tags: form.tags,
         relationship_owner: form.relationship_owner || null,
+        church_id: form.church_id || null,
       }
 
       const { data: contact, error: contactErr } = await supabase
@@ -254,6 +274,49 @@ export default function NewContactPage() {
             onChange={(id) => setForm((prev) => ({ ...prev, relationship_owner: id }))}
           />
         </div>
+
+        {/* Church Affiliation — only for non-church contact types */}
+        {form.type !== 'church' && (
+          <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
+            <h2 className="font-semibold text-gray-900">Church Affiliation</h2>
+            {selectedChurch ? (
+              <div className="flex items-center gap-2 px-3 py-2.5 border border-gray-300 rounded-lg bg-gray-50">
+                <span className="flex-1 text-sm font-medium text-gray-900">{selectedChurch.name}</span>
+                <button
+                  type="button"
+                  onClick={() => { setSelectedChurch(null); setForm(p => ({ ...p, church_id: '' })); setChurchQuery('') }}
+                  className="text-gray-400 hover:text-gray-600 text-xs"
+                >
+                  ✕ Remove
+                </button>
+              </div>
+            ) : (
+              <div className="relative">
+                <input
+                  value={churchQuery}
+                  onChange={(e) => searchChurches(e.target.value)}
+                  placeholder="Search for a church..."
+                  className="form-input"
+                  autoComplete="off"
+                />
+                {churchResults.length > 0 && (
+                  <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg overflow-hidden">
+                    {churchResults.map((c) => (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => { setSelectedChurch(c); setForm(p => ({ ...p, church_id: c.id })); setChurchResults([]); setChurchQuery('') }}
+                        className="w-full text-left px-3 py-2.5 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0"
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Tags */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">

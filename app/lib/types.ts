@@ -15,6 +15,7 @@ export interface Contact {
   address: string | null
   type: 'individual' | 'church' | 'business' | 'community_org' | null
   relationship_owner: string | null
+  church_id: string | null
   stage: string | null
   previous_stage: string | null
   stage_changed_at: string | null
@@ -34,6 +35,7 @@ export interface ChurchDetails {
   primary_contact_name: string | null
   primary_contact_email: string | null
   primary_contact_phone: string | null
+  primary_contact_id: string | null
 }
 
 export interface Touchpoint {
