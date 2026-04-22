@@ -50,6 +50,11 @@
     @apply bg-white rounded-xl border border-gray-200 p-4 transition-all duration-150 hover:shadow-md hover:border-gray-300 cursor-pointer;
   }
 
+  /* Compact card for pipeline columns */
+  .contact-card-compact {
+    @apply bg-white rounded-lg border border-gray-200 px-3 py-2 transition-all duration-150 hover:shadow-sm hover:border-gray-300 cursor-pointer;
+  }
+
   /* Touch-friendly form elements */
   .form-input {
     @apply rounded-lg border border-gray-300 px-4 py-3 text-base w-full focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors;

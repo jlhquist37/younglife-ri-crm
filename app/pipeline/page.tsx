@@ -206,7 +206,7 @@ export default function PipelinePage() {
                     <div className="space-y-2">
                       {stageContacts.map((c) => (
                         <div key={c.id} className={draggingId === c.id ? 'opacity-50' : ''}>
-                          <ContactCard contact={c} draggable onDragStart={handleDragStart} />
+                          <ContactCard contact={c} draggable onDragStart={handleDragStart} compact />
                         </div>
                       ))}
                       <button
@@ -276,7 +276,7 @@ export default function PipelinePage() {
               ) : (
                 getContactsForStage(stages[mobileStageIdx]).map((c) => (
                   <div key={c.id} className="relative">
-                    <ContactCard contact={c} />
+                    <ContactCard contact={c} compact />
                     <button
                       onClick={() => setMobileSelectContact(c)}
                       className="absolute top-3 right-3 text-xs bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-full text-gray-600"
