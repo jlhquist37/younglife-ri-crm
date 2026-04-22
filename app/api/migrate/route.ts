@@ -8,10 +8,10 @@ export async function POST(request: NextRequest) {
   }
 
   const client = new Client({
-    host: 'aws-0-us-east-1.pooler.supabase.com',
+    host: 'db.isrujlamyagkmvleoers.supabase.co',
     port: 5432,
     database: 'postgres',
-    user: 'postgres.isrujlamyagkmvleoers',
+    user: 'postgres',
     password: 'uybqBIqPKLnJiW7n',
     ssl: { rejectUnauthorized: false },
   })
