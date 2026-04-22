@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/app/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
 
+export const maxDuration = 60 // seconds — requires Vercel Pro; free plan still gets 10s but fails cleanly
+
 function parseCSV(text: string): { headers: string[]; rows: Record<string, string>[] } {
   const lines = text.split(/\r?\n/).filter((l) => l.trim())
   if (lines.length < 2) return { headers: [], rows: [] }
@@ -45,6 +47,7 @@ function parseCSV(text: string): { headers: string[]; rows: Record<string, strin
 }
 
 export async function POST(request: NextRequest) {
+  try {
   const supabase = createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -134,4 +137,12 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ error: 'Unsupported file type. Use .csv or .pdf' }, { status: 400 })
+
+  } catch (err: unknown) {
+    console.error('Import route error:', err)
+    return NextResponse.json(
+      { error: 'Import failed: ' + (err instanceof Error ? err.message : String(err)) },
+      { status: 500 }
+    )
+  }
 }

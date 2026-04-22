@@ -84,9 +84,19 @@ export default function ImportPage() {
       formData.append('file', file)
 
       const res = await fetch('/api/import', { method: 'POST', body: formData })
-      const json = await res.json()
 
-      if (!res.ok || json.error) throw new Error(json.error ?? 'Parse failed')
+      let json: Record<string, unknown> = {}
+      try {
+        json = await res.json()
+      } catch {
+        throw new Error(
+          res.status === 504 || res.status === 500
+            ? 'The server timed out processing this file. Try a smaller PDF or export as CSV.'
+            : 'Server returned an unreadable response. Check your file and try again.'
+        )
+      }
+
+      if (!res.ok || json.error) throw new Error((json.error as string) ?? 'Parse failed')
 
       setParsedRows(json.rows)
       setHeaders(json.headers)
