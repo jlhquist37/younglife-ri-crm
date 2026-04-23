@@ -158,10 +158,10 @@ export default function ContactDetailClient({
     setSaving(true)
     setError(null)
     try {
-      const supabase = createClient()
-      const { data, error: err } = await supabase
-        .from('contacts')
-        .update({
+      const res = await fetch(`/api/contacts/${contact.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           phone: editForm.phone || null,
           email: editForm.email || null,
           address: editForm.address || null,
@@ -170,11 +170,11 @@ export default function ContactDetailClient({
           tags: editForm.tags,
           relationship_owner: editForm.relationship_owner || null,
           church_id: editForm.church_id || null,
-        })
-        .eq('id', contact.id)
-        .select('*, owner:contacts!relationship_owner(id, name)')
-        .single()
-      if (err) throw err
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? json.details ?? 'Save failed')
+      const data = json
       setContact(data)
 
       if (contact.type === 'church') {
@@ -187,6 +187,7 @@ export default function ContactDetailClient({
           primary_contact_email: churchForm.primary_contact_email || null,
           primary_contact_phone: churchForm.primary_contact_phone || null,
         }
+        const supabase = createClient()
         if (church) {
           const { data: cd, error: cErr } = await supabase
             .from('church_details')
