@@ -23,13 +23,20 @@ export default async function ContactsPage({
 }) {
   const supabase = createClient()
 
-  // Fetch all staff for owner filter
-  const { data: users } = await supabase.from('staff_members').select('id, name').order('name')
+  // Fetch distinct relationship owners (contacts who own other contacts)
+  const { data: ownerRows } = await supabase
+    .from('contacts')
+    .select('relationship_owner')
+    .not('relationship_owner', 'is', null)
+  const ownerIds = Array.from(new Set((ownerRows ?? []).map((r: any) => r.relationship_owner)))
+  const { data: users } = ownerIds.length
+    ? await supabase.from('contacts').select('id, name').in('id', ownerIds).order('name')
+    : { data: [] }
 
   // Build query
   let query = supabase
     .from('contacts')
-    .select('*, owner:staff_members!relationship_owner(id, name)')
+    .select('*, owner:contacts!relationship_owner(id, name)')
     .order('updated_at', { ascending: false })
 
   if (searchParams.q) {

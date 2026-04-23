@@ -172,7 +172,7 @@ export default function ContactDetailClient({
           church_id: editForm.church_id || null,
         })
         .eq('id', contact.id)
-        .select('*, owner:staff_members!relationship_owner(id, name)')
+        .select('*, owner:contacts!relationship_owner(id, name)')
         .single()
       if (err) throw err
       setContact(data)

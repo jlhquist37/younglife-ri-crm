@@ -33,7 +33,7 @@ export default function PipelinePage() {
 
     const { data } = await supabase
       .from('contacts')
-      .select('*, owner:staff_members!relationship_owner(id, name)')
+      .select('*, owner:contacts!relationship_owner(id, name)')
       .in('type', typeFilter)
       .in('stage', stages)
       .order('updated_at', { ascending: false })

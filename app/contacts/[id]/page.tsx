@@ -18,7 +18,7 @@ export default async function ContactDetailPage({ params }: { params: { id: stri
 
   const { data: contact } = await supabase
     .from('contacts')
-    .select('*, owner:staff_members!relationship_owner(id, name)')
+    .select('*, owner:contacts!relationship_owner(id, name)')
     .eq('id', params.id)
     .single()
 
