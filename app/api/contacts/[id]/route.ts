@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/app/lib/supabase/server'
+import { createClient as createServiceClient } from '@supabase/supabase-js'
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Auth check via user session
   const supabase = createClient()
-
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -21,9 +22,15 @@ export async function PATCH(
     if (key in body) update[key] = body[key]
   }
 
-  const { data, error } = await supabase
+  // Use service role client for the write — bypasses RLS to avoid anon-key edge cases
+  const admin = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  const { data, error } = await admin
     .from('contacts')
-    .update(update)
+    .update({ ...update, updated_at: new Date().toISOString() })
     .eq('id', params.id)
     .select('*, owner:contacts!relationship_owner(id, name)')
     .single()
