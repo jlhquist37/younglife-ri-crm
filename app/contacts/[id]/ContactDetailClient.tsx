@@ -71,6 +71,7 @@ export default function ContactDetailClient({
   })
 
   const [churchForm, setChurchForm] = useState({
+    pastor_name: church?.pastor_name ?? '',
     denomination: church?.denomination ?? '',
     congregation_size: church?.congregation_size ?? '',
     partnership_types: church?.partnership_types ?? [],
@@ -179,6 +180,7 @@ export default function ContactDetailClient({
 
       if (contact.type === 'church') {
         const churchPayload = {
+          pastor_name: churchForm.pastor_name || null,
           denomination: churchForm.denomination || null,
           congregation_size: churchForm.congregation_size || null,
           partnership_types: churchForm.partnership_types,
@@ -485,6 +487,15 @@ export default function ContactDetailClient({
         <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
           <h2 className="font-semibold text-gray-900">Church Details</h2>
           <div>
+            <label className="form-label">Pastor</label>
+            <input
+              value={churchForm.pastor_name}
+              onChange={(e) => setChurchForm((p) => ({ ...p, pastor_name: e.target.value }))}
+              placeholder="Pastor name..."
+              className="form-input"
+            />
+          </div>
+          <div>
             <label className="form-label">Denomination</label>
             <input
               value={churchForm.denomination}
@@ -576,6 +587,7 @@ export default function ContactDetailClient({
         <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
           <h2 className="font-semibold text-gray-900">Church Details</h2>
           <dl className="space-y-2">
+            {church.pastor_name && <div><dt className="text-xs text-gray-400">Pastor</dt><dd className="text-sm font-medium">{church.pastor_name}</dd></div>}
             {church.denomination && <div><dt className="text-xs text-gray-400">Denomination</dt><dd className="text-sm">{church.denomination}</dd></div>}
             {church.congregation_size && <div><dt className="text-xs text-gray-400">Congregation Size</dt><dd className="text-sm capitalize">{church.congregation_size}</dd></div>}
             {church.partnership_types?.length > 0 && (

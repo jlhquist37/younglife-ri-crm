@@ -36,6 +36,7 @@ export interface ChurchDetails {
   primary_contact_email: string | null
   primary_contact_phone: string | null
   primary_contact_id: string | null
+  pastor_name: string | null
 }
 
 export interface Touchpoint {
