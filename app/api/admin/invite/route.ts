@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
 
   const { data: inviteData, error: inviteErr } = await adminSupabase.auth.admin.inviteUserByEmail(email, {
     data: { name },
+    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? 'https://younglife-ri-crm.vercel.app'}/auth/callback`,
   })
 
   if (inviteErr) {

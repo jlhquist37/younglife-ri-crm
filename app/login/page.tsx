@@ -10,6 +10,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
+  const [resetting, setResetting] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -26,6 +28,27 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : 'Login failed')
     } finally {
       setLoading(false)
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!email) {
+      setError('Enter your email address above first')
+      return
+    }
+    setResetting(true)
+    setError(null)
+    try {
+      const supabase = createClient()
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'https://younglife-ri-crm.vercel.app/auth/callback',
+      })
+      if (err) throw err
+      setResetSent(true)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to send reset email')
+    } finally {
+      setResetting(false)
     }
   }
 
@@ -86,6 +109,23 @@ export default function LoginPage() {
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={handleForgotPassword}
+                disabled={resetting}
+                className="text-sm text-primary hover:underline"
+              >
+                {resetting ? 'Sending...' : 'Forgot password / Set password'}
+              </button>
+            </div>
+
+            {resetSent && (
+              <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm text-center">
+                Check your email for a link to set your password.
+              </div>
+            )}
           </form>
         </div>
 
