@@ -25,10 +25,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Service role key not configured' }, { status: 500 })
   }
 
-  // Use service role client to invite user
+  // Use service role client to invite user — strip BOM/whitespace from key
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!.replace(/^\uFEFF/, '').trim()
   const adminSupabase = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    serviceKey,
     { auth: { autoRefreshToken: false, persistSession: false } }
   )
 
