@@ -1,7 +1,7 @@
-// Returns true if contact is stale (60+ days no activity)
+// Returns true if contact is stale (9+ months no activity)
 export function isStale(lastTouchpointDate: string | null, createdAt: string): boolean {
   const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - 60)
+  cutoff.setMonth(cutoff.getMonth() - 9)
   if (lastTouchpointDate) return new Date(lastTouchpointDate) < cutoff
   return new Date(createdAt) < cutoff
 }

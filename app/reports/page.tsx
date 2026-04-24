@@ -233,7 +233,7 @@ function SummaryView({
 
       {/* Stale contacts */}
       {d.stale_contacts.length > 0 && (
-        <SummarySection title="Needs Attention (60+ days)" accent="amber">
+        <SummarySection title="Needs Attention (9+ months)" accent="amber">
           <div className="space-y-1">
             {d.stale_contacts.map((c, i) => (
               <div key={i} className="flex justify-between text-sm">

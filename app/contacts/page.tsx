@@ -136,7 +136,7 @@ export default async function ContactsPage({
               defaultChecked={searchParams.stale === 'true'}
               className="rounded"
             />
-            Only stale (60+ days)
+            Only stale (9+ months)
           </label>
           <div className="flex gap-2">
             <button type="submit" className="btn-primary text-sm py-2 px-4">Filter</button>

@@ -115,7 +115,7 @@ export function buildSummaryEmail(data: SnapshotData): string {
     <!-- Stale contacts -->
     ${
       data.stale_contacts.length > 0
-        ? `<h2 style="font-size:16px;font-weight:700;color:#b45309;margin:0 0 8px">Needs Attention (60+ days)</h2>
+        ? `<h2 style="font-size:16px;font-weight:700;color:#b45309;margin:0 0 8px">Needs Attention (9+ months)</h2>
     <div style="background:#fffbeb;border-radius:8px;overflow:hidden;margin-bottom:16px">
       <table style="width:100%;border-collapse:collapse"><tbody>${staleRows}</tbody></table>
       ${data.stale_contacts.length > 10 ? `<p style="padding:8px 12px;font-size:12px;color:#92400e;margin:0">...and ${data.stale_contacts.length - 10} more</p>` : ''}
@@ -164,7 +164,7 @@ export function buildSummaryPlainText(data: SnapshotData): string {
     'STAGE CHANGES',
     ...data.stage_changes.map((s) => `  ${s.name}: ${s.from ?? '—'} → ${s.to ?? '—'}`),
     '',
-    'NEEDS ATTENTION (60+ days)',
+    'NEEDS ATTENTION (9+ months)',
     ...data.stale_contacts.map((c) => `  ${c.name}: ${c.days} days`),
     '',
     '---',
