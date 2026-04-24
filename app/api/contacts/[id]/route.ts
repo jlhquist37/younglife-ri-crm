@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/app/lib/supabase/server'
 import { createClient as createServiceClient } from '@supabase/supabase-js'
 
+function getAdmin() {
+  // Strip BOM + whitespace that Vercel CLI can inject into pulled env files
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!.replace(/^\uFEFF/, '').trim()
+  return createServiceClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, serviceKey)
+}
+
 export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  // Auth check via user session
+  // Auth check
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
@@ -15,31 +21,40 @@ export async function PATCH(
 
   const body = await request.json()
 
-  // Strip undefined / disallowed fields — only update what's explicitly passed
+  // Only update explicitly passed allowed fields
   const allowed = ['phone', 'email', 'address', 'organization', 'notes', 'tags', 'relationship_owner', 'church_id']
   const update: Record<string, unknown> = {}
   for (const key of allowed) {
     if (key in body) update[key] = body[key]
   }
 
-  // Use service role client for the write — bypasses RLS to avoid anon-key edge cases
-  // Strip BOM and whitespace that can appear in env vars pulled via Vercel CLI
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!.replace(/^\uFEFF/, '').trim()
-  const admin = createServiceClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    serviceKey
-  )
+  const admin = getAdmin()
 
-  const { data, error } = await admin
+  // Step 1: run the update — if this fails, return the error
+  const { error: updateError } = await admin
     .from('contacts')
     .update({ ...update, updated_at: new Date().toISOString() })
     .eq('id', params.id)
+
+  if (updateError) {
+    console.error('Contact PATCH update error:', updateError)
+    return NextResponse.json(
+      { error: updateError.message, details: updateError.details, hint: updateError.hint },
+      { status: 500 }
+    )
+  }
+
+  // Step 2: fetch the refreshed row (separate query so a join failure never blocks the write)
+  const { data, error: selectError } = await admin
+    .from('contacts')
     .select('*, owner:contacts!relationship_owner(id, name)')
+    .eq('id', params.id)
     .single()
 
-  if (error) {
-    console.error('Contact PATCH error:', error)
-    return NextResponse.json({ error: error.message, details: error.details, hint: error.hint }, { status: 500 })
+  if (selectError) {
+    console.error('Contact PATCH select error:', selectError)
+    // Update succeeded — return minimal data so UI still reflects the save
+    return NextResponse.json({ id: params.id, ...update })
   }
 
   return NextResponse.json(data)
