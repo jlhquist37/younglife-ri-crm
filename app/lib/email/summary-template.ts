@@ -63,7 +63,13 @@ export function buildSummaryEmail(data: SnapshotData): string {
 <div style="max-width:600px;margin:32px auto;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.1)">
   <!-- Header -->
   <div style="background:#1e3a5f;padding:24px 32px">
-    <h1 style="margin:0;color:#fff;font-size:22px;font-weight:700">YoungLife RI</h1>
+    <div style="display:inline-flex;align-items:center;gap:10px;margin-bottom:4px">
+      <div style="background:#4CB944;border-radius:6px;padding:4px 8px;display:inline-block">
+        <span style="color:#fff;font-weight:900;font-size:13px;letter-spacing:-0.5px">YL</span>
+      </div>
+      <span style="color:#fff;font-weight:700;font-size:20px;letter-spacing:-0.5px">younglife</span>
+    </div>
+    <h1 style="margin:0;color:#fff;font-size:18px;font-weight:600">Rhody CRM</h1>
     <p style="margin:4px 0 0;color:#93c5fd;font-size:14px">Monthly Relationship Summary — ${month}</p>
   </div>
 
@@ -122,7 +128,7 @@ export function buildSummaryEmail(data: SnapshotData): string {
   <!-- Footer -->
   <div style="background:#f9fafb;padding:16px 32px;border-top:1px solid #e5e7eb">
     <p style="margin:0;font-size:12px;color:#9ca3af">Financial tracking is managed separately and not reflected here.</p>
-    <p style="margin:4px 0 0;font-size:12px;color:#9ca3af">YoungLife Rhode Island &bull; youngliferi.org</p>
+    <p style="margin:4px 0 0;font-size:12px;color:#9ca3af">YoungLife Rhody &bull; youngliferi.org</p>
   </div>
 </div>
 </body>
@@ -136,7 +142,7 @@ export function buildSummaryPlainText(data: SnapshotData): string {
   })
 
   const lines: string[] = [
-    `YoungLife RI — Monthly Summary: ${month}`,
+    `YoungLife Rhody — Monthly Summary: ${month}`,
     '='.repeat(50),
     '',
     'INDIVIDUAL & BUSINESS PIPELINE',

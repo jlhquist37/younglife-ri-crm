@@ -96,8 +96,15 @@ export default function Sidebar({ userName, userRole }: SidebarProps) {
     <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-56 bg-primary z-40">
       {/* Logo */}
       <div className="px-5 py-5 border-b border-white/10">
-        <div className="text-white font-bold text-lg leading-tight">YoungLife RI</div>
-        <div className="text-blue-300 text-xs mt-0.5">CRM</div>
+        <div className="flex items-center gap-2">
+          {/* YL badge */}
+          <div className="flex items-center justify-center w-8 h-7 rounded bg-[#4CB944] flex-shrink-0">
+            <span className="text-white font-black text-xs tracking-tight leading-none">YL</span>
+          </div>
+          {/* wordmark */}
+          <span className="text-white font-bold text-base tracking-tight leading-none">younglife</span>
+        </div>
+        <div className="text-blue-200 text-xs mt-2 font-medium tracking-wide">Rhody CRM</div>
       </div>
 
       {/* Nav links */}

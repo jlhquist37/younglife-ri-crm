@@ -9,8 +9,8 @@ import Sidebar from '@/app/components/Sidebar'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'YoungLife RI CRM',
-  description: 'Relationship management for YoungLife Rhode Island',
+  title: 'YoungLife Rhody CRM',
+  description: 'Relationship management for YoungLife Rhody',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
 }
 

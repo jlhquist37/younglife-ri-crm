@@ -34,10 +34,13 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-4">
-            <span className="text-white text-2xl font-bold">YL</span>
+          <div className="inline-flex items-center gap-2.5 justify-center mb-3">
+            <div className="flex items-center justify-center w-10 h-9 rounded-lg bg-[#4CB944]">
+              <span className="text-white font-black text-sm tracking-tight">YL</span>
+            </div>
+            <span className="text-primary font-bold text-2xl tracking-tight">younglife</span>
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">YoungLife RI</h1>
+          <h1 className="text-lg font-semibold text-gray-700">Rhody CRM</h1>
           <p className="text-gray-500 text-sm mt-1">Sign in to continue</p>
         </div>
 
@@ -87,7 +90,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          YoungLife Rhode Island &bull; Internal CRM
+          YoungLife Rhody &bull; Internal CRM
         </p>
       </div>
     </div>
