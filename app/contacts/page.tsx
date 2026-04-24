@@ -33,6 +33,12 @@ export default async function ContactsPage({
     ? await supabase.from('contacts').select('id, name').in('id', ownerIds).order('name')
     : { data: [] }
 
+  // Fetch all distinct tags across all contacts
+  const { data: tagRows } = await supabase.from('contacts').select('tags')
+  const allTags = Array.from(
+    new Set((tagRows ?? []).flatMap((r: any) => r.tags ?? []))
+  ).sort() as string[]
+
   // Build query
   let query = supabase
     .from('contacts')
@@ -110,6 +116,13 @@ export default async function ContactsPage({
             <option value="">All Owners</option>
             {(users ?? []).map((u) => (
               <option key={u.id} value={u.id}>{u.name}</option>
+            ))}
+          </select>
+
+          <select name="tag" defaultValue={searchParams.tag ?? ''} className="form-select flex-1 min-w-[120px]">
+            <option value="">All Tags</option>
+            {allTags.map((t) => (
+              <option key={t} value={t}>{t}</option>
             ))}
           </select>
         </div>
