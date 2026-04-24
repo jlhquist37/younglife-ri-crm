@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/app/lib/supabase/client'
 import type { User } from '@/app/lib/types'
 
@@ -12,6 +12,12 @@ export default function AdminUsersPage() {
   const [inviting, setInviting] = useState(false)
   const [inviteMsg, setInviteMsg] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+
+  // Contact search for invite form
+  const [contactResults, setContactResults] = useState<{ id: string; name: string; email: string | null }[]>([])
+  const [showContactDrop, setShowContactDrop] = useState(false)
+  const [selectedContact, setSelectedContact] = useState<string | null>(null)
+  const nameRef = useRef<HTMLDivElement>(null)
 
   async function loadData() {
     const supabase = createClient()
@@ -27,6 +33,41 @@ export default function AdminUsersPage() {
   }
 
   useEffect(() => { loadData() }, [])
+
+  // Search contacts as name is typed
+  async function handleNameChange(val: string) {
+    setInviteName(val)
+    setSelectedContact(null)
+    if (!val.trim()) { setContactResults([]); setShowContactDrop(false); return }
+    const supabase = createClient()
+    const { data } = await supabase
+      .from('contacts')
+      .select('id, name, email')
+      .not('type', 'eq', 'church')
+      .ilike('name', `%${val}%`)
+      .limit(8)
+    setContactResults(data ?? [])
+    setShowContactDrop(true)
+  }
+
+  function pickContact(c: { id: string; name: string; email: string | null }) {
+    setInviteName(c.name)
+    setInviteEmail(c.email ?? '')
+    setSelectedContact(c.id)
+    setContactResults([])
+    setShowContactDrop(false)
+  }
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (nameRef.current && !nameRef.current.contains(e.target as Node)) {
+        setShowContactDrop(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   async function handleRoleChange(userId: string, newRole: 'admin' | 'member') {
     const supabase = createClient()
@@ -80,15 +121,41 @@ export default function AdminUsersPage() {
       <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
         <h2 className="font-semibold text-gray-900">Invite New Member</h2>
         <form onSubmit={handleInvite} className="space-y-3">
-          <div>
+          <div ref={nameRef} className="relative">
             <label className="form-label">Name</label>
-            <input
-              value={inviteName}
-              onChange={(e) => setInviteName(e.target.value)}
-              className="form-input"
-              placeholder="Full name"
-              required
-            />
+            <div className="relative">
+              <input
+                value={inviteName}
+                onChange={(e) => handleNameChange(e.target.value)}
+                className="form-input"
+                placeholder="Full name or search existing contact..."
+                autoComplete="off"
+                required
+              />
+              {selectedContact && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-green-600 font-medium">
+                  ✓ Contact linked
+                </span>
+              )}
+            </div>
+            {showContactDrop && contactResults.length > 0 && (
+              <div className="absolute z-20 w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg overflow-hidden">
+                {contactResults.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => pickContact(c)}
+                    className="w-full text-left px-4 py-2.5 hover:bg-gray-50 border-b border-gray-50 last:border-0 transition-colors"
+                  >
+                    <div className="text-sm font-medium text-gray-900">{c.name}</div>
+                    {c.email
+                      ? <div className="text-xs text-gray-400">{c.email}</div>
+                      : <div className="text-xs text-gray-400 italic">No email on file</div>
+                    }
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div>
             <label className="form-label">Email</label>
