@@ -23,9 +23,11 @@ export async function PATCH(
   }
 
   // Use service role client for the write — bypasses RLS to avoid anon-key edge cases
+  // Strip BOM and whitespace that can appear in env vars pulled via Vercel CLI
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!.replace(/^\uFEFF/, '').trim()
   const admin = createServiceClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    serviceKey
   )
 
   const { data, error } = await admin
