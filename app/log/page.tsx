@@ -113,6 +113,7 @@ export default function LogPage() {
           <TouchpointForm
             contactId={selectedContact.id}
             userId={currentUser.id}
+            userName={currentUser.name}
             onSuccess={handleSuccess}
             onCancel={() => setStep('search')}
           />
