@@ -123,7 +123,7 @@ export default function TouchpointForm({ contactId, userId, userName, onSuccess,
 
       {/* Logged by */}
       <div ref={loggedByRef} className="relative">
-        <label className="form-label">Logged by</label>
+        <label className="form-label">Engaged by</label>
         <input
           type="text"
           value={userSearch}
