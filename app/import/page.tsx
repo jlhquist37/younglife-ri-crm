@@ -237,7 +237,7 @@ export default function ImportPage() {
       await supabase.from('contact_imports').insert({
         imported_by: user?.id ?? null,
         source_filename: file?.name ?? null,
-        source_type: file?.name.endsWith('.pdf') ? 'pdf' : 'csv',
+        source_type: file?.name.endsWith('.pdf') ? 'pdf' : file?.name.endsWith('.xlsx') || file?.name.endsWith('.xls') ? 'xlsx' : 'csv',
         row_count: mapped.length,
         success_count: imported,
         error_count: errorDetails.length,
@@ -298,18 +298,18 @@ export default function ImportPage() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
             </svg>
             <p className="text-gray-600 font-medium">Drop a file here or click to upload</p>
-            <p className="text-gray-400 text-sm mt-1">Accepts .csv or .pdf</p>
+            <p className="text-gray-400 text-sm mt-1">Accepts .csv, .xlsx, or .pdf</p>
             {file && <p className="text-primary text-sm mt-2 font-medium">{file.name}</p>}
           </div>
           <input
             ref={fileInputRef}
             type="file"
-            accept=".csv,.pdf"
+            accept=".csv,.xlsx,.xls,.pdf"
             className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFileSelect(f) }}
           />
           <p className="text-xs text-gray-400">
-            XLSX: please export as CSV first. PDF: contact data will be extracted via AI.
+            CSV and XLSX files are parsed directly. PDF: contact data will be extracted via AI.
           </p>
           <button
             onClick={handleUpload}

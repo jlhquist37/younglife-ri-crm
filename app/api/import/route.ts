@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/app/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
+import * as XLSX from 'xlsx'
 
 export const maxDuration = 60 // seconds — requires Vercel Pro; free plan still gets 10s but fails cleanly
 
@@ -128,12 +129,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ headers, rows })
   }
 
-  // XLSX: ask user to convert
+  // XLSX / XLS: parse with SheetJS
   if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
-    return NextResponse.json(
-      { error: 'Please export your spreadsheet as CSV first, then upload the CSV file.' },
-      { status: 400 }
-    )
+    const bytes = await file.arrayBuffer()
+    const workbook = XLSX.read(bytes, { type: 'array' })
+    const sheetName = workbook.SheetNames[0]
+    const sheet = workbook.Sheets[sheetName]
+    const rows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: '' })
+
+    if (!rows.length) {
+      return NextResponse.json({ error: 'No rows found in spreadsheet' }, { status: 400 })
+    }
+
+    const headers = Object.keys(rows[0])
+    return NextResponse.json({ headers, rows })
   }
 
   return NextResponse.json({ error: 'Unsupported file type. Use .csv or .pdf' }, { status: 400 })

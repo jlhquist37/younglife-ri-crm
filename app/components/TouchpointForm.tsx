@@ -66,9 +66,8 @@ export default function TouchpointForm({ contactId, userId, userName, onSuccess,
     if (!val.trim()) { setUserResults([]); setShowUserDrop(false); return }
     const supabase = createClient()
     const { data } = await supabase
-      .from('contacts')
+      .from('users')
       .select('id, name')
-      .not('type', 'eq', 'church')
       .ilike('name', `%${val}%`)
       .limit(8)
     setUserResults(data ?? [])
@@ -109,7 +108,7 @@ export default function TouchpointForm({ contactId, userId, userName, onSuccess,
       if (err) throw err
       onSuccess()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to save')
+      setError(err instanceof Error ? err.message : (err as { message?: string }).message ?? 'Failed to save')
     } finally {
       setSaving(false)
     }

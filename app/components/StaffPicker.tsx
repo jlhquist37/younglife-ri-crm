@@ -23,11 +23,11 @@ export default function StaffPicker({ value, onChange }: Props) {
   useEffect(() => {
     if (!value) { setSelected(null); return }
     const supabase = createClient()
-    supabase.from('contacts').select('id, name').eq('id', value).single()
+    supabase.from('users').select('id, name').eq('id', value).single()
       .then(({ data }) => { if (data) setSelected(data) })
   }, [value])
 
-  // Search contacts as user types
+  // Search users (staff) as user types
   useEffect(() => {
     if (!showDropdown) return
     if (!query.trim()) {
@@ -38,10 +38,9 @@ export default function StaffPicker({ value, onChange }: Props) {
     const supabase = createClient()
     const timer = setTimeout(() => {
       supabase
-        .from('contacts')
+        .from('users')
         .select('id, name')
         .ilike('name', `%${query}%`)
-        .not('type', 'eq', 'church')
         .order('name')
         .limit(10)
         .then(({ data }) => {
@@ -103,7 +102,7 @@ export default function StaffPicker({ value, onChange }: Props) {
           onClick={openSearch}
           className="w-full text-left px-3 py-2.5 border border-gray-300 rounded-lg text-sm text-gray-400 hover:border-primary hover:text-gray-700 transition-colors bg-white"
         >
-          Search contacts...
+          Search staff...
         </button>
       )}
 

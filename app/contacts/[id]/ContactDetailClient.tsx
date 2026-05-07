@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/app/lib/supabase/client'
@@ -38,6 +38,7 @@ export default function ContactDetailClient({
   const [contact, setContact] = useState(initialContact)
   const [church, setChurch] = useState(initialChurch)
   const [touchpoints, setTouchpoints] = useState(initialTouchpoints)
+  useEffect(() => { setTouchpoints(initialTouchpoints) }, [initialTouchpoints])
   const [editing, setEditing] = useState(false)
   const [showLogForm, setShowLogForm] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -212,7 +213,7 @@ export default function ContactDetailClient({
 
       setEditing(false)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Save failed')
+      setError(err instanceof Error ? err.message : (err as { message?: string }).message ?? 'Save failed')
     } finally {
       setSaving(false)
     }
