@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
   // XLSX / XLS: parse with SheetJS
   if (filename.endsWith('.xlsx') || filename.endsWith('.xls')) {
     const bytes = await file.arrayBuffer()
-    const workbook = XLSX.read(bytes, { type: 'array' })
+    const workbook = XLSX.read(Buffer.from(bytes), { type: 'buffer' })
     const sheetName = workbook.SheetNames[0]
     const sheet = workbook.Sheets[sheetName]
     const rows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { defval: '' })
